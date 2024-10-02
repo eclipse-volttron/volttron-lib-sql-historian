@@ -25,10 +25,8 @@
 import inspect
 import logging
 
-from volttron import utils
 from historian.sql import DbDriver
 
-utils.setup_logging()
 _log = logging.getLogger(__name__)
 
 

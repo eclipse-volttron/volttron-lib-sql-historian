@@ -33,7 +33,6 @@ from historian.sql import sqlutils
 
 __version__ = "4.0.0"
 
-utils.setup_logging()
 _log = logging.getLogger(__name__)
 
 
