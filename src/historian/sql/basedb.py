@@ -31,10 +31,8 @@ import sys
 from abc import abstractmethod
 from gevent.local import local
 
-from volttron import utils
 from volttron.utils import jsonapi
 
-utils.setup_logging()
 _log = logging.getLogger(__name__)
 
 
