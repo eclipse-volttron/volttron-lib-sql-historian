@@ -15,10 +15,11 @@ installed as a VOLTTRON agent.
 
 ## Installation
 
-This library can be installed using ```pip install volttron-lib-sql-historian```. However, this is not necessary. Any
+This library can be installed into a running VOLTTRON instance using ```vctl install-lib volttron-lib-sql-historian```. 
+To remove it later, use ```vctl remove-lib volttron-lib-sql-historian```. However, this is not usually necessary. Any
 historian agent that uses this library will automatically install it as part of its installation. For example,
-installing [SQLiteHistorian](https://github.com/eclipse-volttron/volttron-sqlitehistorian) will automatically install
-volttron-lib-sql-historian
+installing [SQLiteHistorian](https://github.com/eclipse-volttron/volttron-sqlite-historian) will automatically install
+volttron-lib-sql-historian into the same VOLTTRON environment.
 
 ## Development
 
