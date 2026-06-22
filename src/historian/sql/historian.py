@@ -58,18 +58,15 @@ def historian(config_path, **kwargs):
 
     connection = config_dict.get('connection', None)
 
-    assert connection is not None
-    database_type = connection.get('type', None)
-    assert database_type is not None
-    params = connection.get('params', None)
-    assert params is not None
-
-    # Avoid printing passwords in the debug message
-    for key in ['pass', 'passwd', 'password', 'pw']:
-        try:
-            params[key] = MaskedString(params[key])
-        except KeyError:
-            pass
+    if connection is not None:
+        params = connection.get('params', None)
+        # Avoid printing passwords in the debug message
+        if params:
+            for key in ['pass', 'passwd', 'password', 'pw']:
+                try:
+                    params[key] = MaskedString(params[key])
+                except KeyError:
+                    pass
 
     SQLHistorian.__name__ = 'SQLHistorian'
     utils.update_kwargs_with_config(kwargs, config_dict)
@@ -87,7 +84,7 @@ class SQLHistorian(BaseHistorian):
      - :py:mod:`volttron.platform.dbutils.sqlitefuncts`
     """
 
-    def __init__(self, connection, tables_def=None, **kwargs):
+    def __init__(self, connection=None, tables_def=None, **kwargs):
         """Initialise the historian.
 
         The historian makes two connections to the data store.  Both of
@@ -122,16 +119,7 @@ class SQLHistorian(BaseHistorian):
         self.topic_name_map = {}
         self.topic_meta = {}
         self.agg_topic_id_map = {}
-        # Create two instance so connection is shared within a single thread.
-        # This is because sqlite only supports sharing of connection within
-        # a single thread.
-        # historian_setup and publish_to_historian happens in background thread
-        # everything else happens in the MainThread
-
-        # One utils class instance( hence one db connection) for main thread
-        self.main_thread_dbutils = self.get_dbfuncts_object()
-        # One utils class instance( hence one db connection) for background thread
-        # this gets initialized in the bg_thread within historian_setup
+        self.main_thread_dbutils = self.get_dbfuncts_object() if connection else None
         self.bg_thread_dbutils = None
         super(SQLHistorian, self).__init__(**kwargs)
 
@@ -320,8 +308,18 @@ class SQLHistorian(BaseHistorian):
                 results = dict()
         return results
 
+    def configure(self, configuration):
+        connection = configuration.get('connection', None)
+        if connection is not None:
+            self.connection = connection
+            self.tables_def, self.table_names = self.parse_table_def(configuration.get('tables_def', None))
+            self.main_thread_dbutils = self.get_dbfuncts_object()
+
     #@doc_inherit
     def historian_setup(self):
+        if self.connection is None:
+            _log.warning("historian_setup called but no connection configured yet; skipping")
+            return
         thread_name = threading.currentThread().getName()
         _log.info("historian_setup on Thread: {}".format(thread_name))
         self.bg_thread_dbutils = self.get_dbfuncts_object()
